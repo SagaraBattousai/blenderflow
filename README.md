@@ -1,2 +1,0 @@
-# stlicer
-stl slice projections
