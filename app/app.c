@@ -2,14 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <Model/ply_reader.h>
+#include <Model/stl_reader.h>
 
 int main(void)
 {
-  ply_model_t ply_model;
-  get_model(&ply_model, "assets/Colon/Colon.ply");
+  stl_model_t stl_model;
+  get_stl_model(&stl_model, "assets/Colon/Colon.stl");
 
-  printf("%zi\n", sizeof(vertex));
+  vertex v = *(stl_model.normals);
+  printf("%f, %f, %f\n", v.x, v.y, v.z);
+
+  triangle3D_t t = *(stl_model.triangels + 5);
+  printf("%f, %f, %f\n", t.i.x, t.i.y, t.i.z);
 
 
   return 0;

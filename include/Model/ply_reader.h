@@ -15,10 +15,8 @@ typedef struct ply_model
   int **face_indicies;
 }ply_model_t;
 
-void get_model(ply_model_t *model, const char *filename);
+int get_ply_model(ply_model_t *model, const char *filename);
 
-void free_model(ply_model_t *model);
-
-//void get_counts(ply_model_t *model, FILE *file);//size_t *vertices, size_t *faces, endianness_t *endian,
+void free_ply_model(ply_model_t *model);
 
 #endif

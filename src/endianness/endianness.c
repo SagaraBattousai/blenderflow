@@ -3,50 +3,38 @@
 #include <stdlib.h>
 
 
-endianness_t base_endianness(void)
+endianness_t system_endianness(void)
 {
   int data = 1;
   char byte_zero = ((char *)&data)[0];
   return (endianness_t)byte_zero;
 }
 
-float endianness_castf(endianness_t dst_endianness,
-  endianness_t src_endianness, char *data)
+void endianness_cast(endianness_t dst_endianness, endianness_t src_endianness,
+  char *data, void *dst, size_t dst_size)
 {
-  float ret = -1;
   if (dst_endianness == src_endianness)
   {
-    memcpy(&ret, data, sizeof(float));
+    memcpy(dst, data, sizeof(vertex));
   }
   else
   {
-    char *ret_bytes = (char *)&ret;
-
-    ret_bytes[3] = data[0];
-    ret_bytes[2] = data[1];
-    ret_bytes[1] = data[2];
-    ret_bytes[0] = data[3];
-  }
-  return ret;
-}
-
-vertex endianness_cast_vertex(endianness_t dst_endianness,
-  endianness_t src_endianness, char *data)
-{
-  vertex ret = { 0, 0, 0 };
-
-  if (dst_endianness == src_endianness)
-  {
-    memcpy(&ret, data, sizeof(vertex));
-  }
-  else
-  {
-    char *ret_bytes = (char *)&ret;
-    for (size_t byte_it = 0; byte_it < sizeof(vertex); byte_it++)
+    char *dst_bytes = (char *)dst;
+    for (size_t byte_it = 0; byte_it < dst_size; byte_it++)
     {
-      ret_bytes[sizeof(vertex) - byte_it - 1] = data[byte_it];
+      dst_bytes[dst_size - byte_it - 1] = data[byte_it];
     }
   }
-  return ret;
+}
 
+void endianness_to_system_cast(endianness_t src_endianness, char *data,
+  void *dst, size_t dst_size)
+{
+  endianness_cast(system_endianness(), src_endianness, data, dst, dst_size);
+}
+
+void endianness_from_system_cast(endianness_t dst_endianness, char *data,
+  void *dst, size_t dst_size)
+{
+  endianness_cast(dst_endianness, system_endianness(), data, dst, dst_size);
 }

@@ -8,7 +8,7 @@
 #define FORMAT_LENGTH 6
 #define END_HEADER_LEN 10
 
-static void get_counts(ply_model_t *model, FILE *file)//size_t *vertices, size_t *faces, endianness_t *endian,
+static void get_counts(ply_model_t *model, FILE *file)
 {
   char *header = (char *) malloc(128 * sizeof(char));
   char *tok;
@@ -54,7 +54,7 @@ static void get_counts(ply_model_t *model, FILE *file)//size_t *vertices, size_t
   return; 
 }
 
-static int get_vertex_data(ply_model_t *model, endianness_t system_endianness, FILE *file)
+static int get_vertex_data(ply_model_t *model, FILE *file)
 {
   model->verticies = (vecf3_t *)malloc(model->vertex_count * sizeof(vecf3_t));
   if (model->verticies == NULL)
@@ -67,30 +67,33 @@ static int get_vertex_data(ply_model_t *model, endianness_t system_endianness, F
   while (i < model->vertex_count)
   {
     fread(vertex_data, 4, 3, file);
-    vertex vert = endianness_cast_vertex(system_endianness, model->endian, vertex_data);
+    vertex vert;
+    endianness_to_system_cast(model->endian, vertex_data, &vert, sizeof(vertex));
     *(model->verticies + i) = vert;
     i++;
   }
-
-  printf("Vertex{%f, %f, %f}\n", (model->verticies + 1)->x, (model->verticies + 1)->y, (model->verticies + 1)->z);
-
   return 0;
 }
 
-void get_model(ply_model_t *ply_model, const char *filename)
+int get_ply_model(ply_model_t *ply_model, const char *filename)
 {
-  FILE *file = fopen(filename, "r");
+  FILE *file = fopen(filename, "rb");
 
-  endianness_t system_endianness = base_endianness();
+  if (file == NULL)
+  {
+    return -1;
+  }
 
   get_counts(ply_model, file);
   
-  get_vertex_data(ply_model, system_endianness, file);
+  get_vertex_data(ply_model, file);
 
   fclose(file);
+  
+  return 0;
 }
 
-void free_model(ply_model_t *model)
+void free_ply_model(ply_model_t *model)
 {
   free(model->verticies);
   //TODO: Handle faces as double pointer so may cause issues but ignore for now
