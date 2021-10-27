@@ -12,8 +12,10 @@ int main(void)
   vertex v = *(stl_model.normals);
   printf("%f, %f, %f\n", v.x, v.y, v.z);
 
-  triangle3D_t t = *(stl_model.triangels + 5);
+  triangle3D_t t = *(stl_model.triangels + 0);
   printf("%f, %f, %f\n", t.i.x, t.i.y, t.i.z);
+  printf("%f, %f, %f\n", t.j.x, t.j.y, t.j.z);
+  printf("%f, %f, %f\n", t.k.x, t.k.y, t.k.z);
 
 
   return 0;

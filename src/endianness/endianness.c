@@ -15,7 +15,7 @@ void endianness_cast(endianness_t dst_endianness, endianness_t src_endianness,
 {
   if (dst_endianness == src_endianness)
   {
-    memcpy(dst, data, sizeof(vertex));
+    memcpy(dst, data, dst_size);
   }
   else
   {
