@@ -64,37 +64,14 @@ class stl_model(collections.abc.Sequence):
       tris.extend(Triangle3D.from_c(self.c_stl_model.triangles[triangle_index]).as_list())
     return tris
 
-  #TODO: Do dumb version for now
-  def show(self, f=0, color_type=0):
+  def get_perspective(self, f=0):
     xyz = np.array(self.get_triangles_as_list())
-    # xyz = xyz / np.amin(xyz, 0)
     if f == 0:
-      tri_points = [[a[X], a[Z]] for a in xyz]
+      tri_points = [[a[X], 0, a[Z]] for a in xyz]
     else:
-      # xyz = list(filter(lambda z: z[2] >= f, xyz))
-      tri_points = [[f * (a[X] / a[Y]), f * (a[Z] / a[Y])] for a in xyz]
+      tri_points = [[f * (a[X] / a[Y]), f, f * (a[Z] / a[Y])] for a in xyz]
 
-    # if len(tri_points) == 0:
-    #   print("No Points past f plane: ", f)
-    #   return
-    
-    x, y = zip(*tri_points)
-
-    tri_indices = [[a, a + 1, a + 2] for a in range(0, len(x), 3)]
-
-    if color_type == 0:
-      C = [0] * len(x)
-    elif color_type == 1:
-      C = range(0, len(x))
-    else:
-      C = np.random.rand(len(x))
-
-    plt.tripcolor(x, y, tri_indices, C, cmap="summer")
-
-    plt.show()
-
-    # return xyz
-    
+    return tri_points 
 
 
 

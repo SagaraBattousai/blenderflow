@@ -1,5 +1,16 @@
-# Vim swap files
+
+# No Secret Tokens
+.*_token
+
+# Vim Files
 *.swp
+Session.vim
+
+# Sphinx build
+build_docs/
+
+# Coverage
+coverage_html_report/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -8,6 +19,8 @@ __pycache__/
 
 # C extensions
 *.so
+*.pyd
+c_build/
 
 # Distribution / packaging
 .Python

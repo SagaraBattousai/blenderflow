@@ -60,7 +60,7 @@ int get_stl_model(stl_model_t *model, const char *filename)
 
     fread(triangle_data, 12, 3, file);
 
-    endianness_to_system_cast(STL_ENDIANNESS, triangle_data,
+          endianness_to_system_cast(STL_ENDIANNESS, triangle_data,
       (model->triangels + i), sizeof(triangle3D_t));
 
     fseek(file, 2, SEEK_CUR);
