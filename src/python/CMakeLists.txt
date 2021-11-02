@@ -1,47 +1,52 @@
 
-set(src "model.c")
+set(src "blenderflow.c" "arrayutils.c")
 
 set(header_dir "Binding/Python")
-set(public_headers "model.h")
+set(public_headers "model.h" "arrayutils.h")
 
 list(TRANSFORM public_headers PREPEND "${INCLUDE_DIR}/${header_dir}/")
 
 #Headers are added so Visual studios sln looks nice
-add_library(modelmodule
+add_library(blenderflow
   SHARED
   ${src}
   ${public_headers})
 
 
-target_include_directories(modelmodule
+target_include_directories(blenderflow
   PUBLIC 
   ${Python3_INCLUDE_DIRS}
   ${Python3_NumPy_INCLUDE_DIRS}
   $<BUILD_INTERFACE:${INCLUDE_DIR}>
   )
 
-message(STATUS ${Python3_INCLUDE_DIRS})
+message(STATUS ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
 
-#Remember how this works
-target_compile_definitions(modelmodule PUBLIC 
-  MODULE_ARRAY_API_NAME=modelmodule_ARRAY_API)
+#Important for Numpy extensins
+target_compile_definitions(blenderflow PUBLIC 
+  MODULE_ARRAY_API_NAME=blenderflow_ARRAY_API)
 
 
-target_link_libraries(modelmodule PUBLIC model)
-target_link_libraries(modelmodule PRIVATE ${Python3_LIBRARIES})
+target_link_libraries(blenderflow 
+  PUBLIC 
+  model 
+  endianness
+  ${Python3_LIBRARIES}
+  ${Python3_NumPy_LIBRARIES})
+# target_link_libraries(blenderflow PRIVATE ${Python3_LIBRARIES})
 
 if (PYTHON_EXTENSION)
   message(DEBUG "Setting library extension to ${PYTHON_EXTENSION}")
 
-  set_target_properties(modelmodule 
+  set_target_properties(blenderflow 
     PROPERTIES 
     SUFFIX ${PYTHON_EXTENSION}
     PREFIX "")
 endif()
 
-if(BUILD_EXTENSIONS_INPLACE)
+if(BUILD_EXTENSIONS_FOR_DEVELOPMENT)
   message(STATUS "Build will copy C Extension inplace")
-  inplace_build(modelmodule)
+  dev_python_extension_build(blenderflow "${CMAKE_SOURCE_DIR}")
 endif()
 
 

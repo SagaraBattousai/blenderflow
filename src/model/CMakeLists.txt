@@ -1,7 +1,7 @@
-set(src "model_reader.c" "ply_reader.c" "stl_reader.c")
+set(src "model.cpp" "ply_reader.c" "stl_reader.c")
 
 set(header_dir "Model")
-set(pubic_headers "model_reader.h" "ply_reader.h" "stl_reader.h")
+set(pubic_headers "model.h" "ply_reader.h" "stl_reader.h")
 
 list(TRANSFORM pubic_headers PREPEND "${INCLUDE_DIR}/${header_dir}/")
 
