@@ -79,7 +79,6 @@ PyArrayObject *vectors_as_RGB(PyArrayObject *vector)
 {
   npy_intp *vector_dims = PyArray_DIMS(vector);
   int shape = ceilf(sqrtf(*vector_dims * POINTS_PER_TRIANGLE));
-  printf("%i, %i\n", shape, *vector_dims);
 
   npy_intp const dims[3] = { shape, shape, RGB_CHANNELS };
 
@@ -93,11 +92,59 @@ PyArrayObject *vectors_as_RGB(PyArrayObject *vector)
 
   float *vector_arr = PyArray_DATA(vector);
   float *RGB_arr = PyArray_DATA(RGB);
-  npy_intp indices = (*vector_dims) * (*(vector_dims + 1)) * (*(vector_dims + 2));
-  for (npy_intp i = 0; i < indices; i++) // Could I memset/memcopy data over?
-  {
-    *(RGB_arr + i) = *(vector_arr + i);
-  }
+
+  //TODO: Potential error
+  //npy_intp indices = (*vector_dims) * (*(vector_dims + 1)) * (*(vector_dims + 2));
+  npy_intp indices = PyArray_SIZE(vector); // Safe to use unsafe form as arr is arr
+
+  memcpy(RGB_arr, vector_arr, indices);
+
   return RGB;
 }
+
+PyArrayObject *normalise(PyArrayObject *arr)
+{
+  PyObject *max = PyArray_Max(arr, NPY_MAXDIMS, NULL); // Must Py_DECREF Okay!
+  PyObject *min = PyArray_Min(arr, NPY_MAXDIMS, NULL); // Must Py_DECREF Okay!
+
+  float max_val;
+  float min_val;
+
+  PyArray_ScalarAsCtype(max, &max_val);
+  PyArray_ScalarAsCtype(min, &min_val);
+
+  float min_abs = fabsf(min_val);
+
+  float scale;
+
+  if (min_abs > max_val)
+  {
+    scale = min_val;
+  }
+  else
+  {
+    scale = max_val;
+  }
+
+  npy_intp count = PyArray_SIZE(arr); // Safe to use unsafe form as arr is arr
+
+  float *data = (float *) PyArray_DATA(arr);
+  PyArrayObject *norm = PyArray_NewLikeArray(arr, NPY_CORDER, NULL, 1);
+  if (norm == NULL)
+  {
+    return NULL;
+  }
+
+  float *norm_data = (float *)PyArray_DATA(norm);
+  for (int i = 0; i < count; i++)
+  {
+    *(norm_data + i) = ((*(data + i) / scale) + 1) / 2;
+  }
+
+  Py_DECREF(max);
+  Py_DECREF(min);
+
+  return norm;
+}
+
 

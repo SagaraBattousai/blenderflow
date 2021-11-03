@@ -5,4 +5,6 @@ PyArrayObject *array_from_stl(const char *filename);
 
 PyArrayObject *vectors_as_RGB(PyArrayObject *vector);
 
+PyArrayObject *normalise(PyArrayObject *arr);
+
 #endif

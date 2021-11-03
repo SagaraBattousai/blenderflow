@@ -33,7 +33,7 @@ static void Model_dealloc(ModelObject *self)
 static int Model_init(ModelObject *self, PyObject *args, PyObject *kwds)
 {
   PyArrayObject *polys = NULL;
-  PyObject *tmp;
+  PyArrayObject *tmp;
   const char *filename;
   int filename_length;
 
@@ -82,7 +82,14 @@ Model_as_RGB(ModelObject *self, PyObject *Py_UNUSED(ignored))
     return NULL;
   }
   
-  return vectors_as_RGB(self->polys);
+  PyArrayObject *rgb = vectors_as_RGB(self->polys);
+  if (rgb == NULL)
+  {
+    PyErr_SetString(PyExc_AttributeError, "rgb"); //???? TODO: find better exception
+    return NULL;
+  }
+  Py_INCREF(rgb);
+  return (PyObject *)rgb;
 }
 
 static PyMethodDef Model_methods[] = {
@@ -106,11 +113,44 @@ static PyTypeObject ModelType = {
   .tp_methods = Model_methods,
 };
 
-static PyModuleDef blenderflowmodule = {
+static PyObject *
+blenderflow_normalise(PyObject *self, PyObject *const *args, Py_ssize_t nargs)
+{
+  PyArrayObject *arr;
+
+  //Hmmmmmm
+  PyArray_OutputConverter(args[0], &arr); //Beautiful exception is automatically thrown
+  if (arr == NULL)
+  {
+    PyErr_SetString(PyExc_AttributeError, "arr"); //???? TODO: find better exception
+    return NULL;
+  }
+
+  PyArrayObject *norm = normalise(arr);
+  
+  if (norm == NULL)
+  {
+    PyErr_SetString(PyExc_AttributeError, "norm"); //???? TODO: find better exception
+    return NULL;
+  }
+
+  Py_INCREF(norm);
+  return (PyObject *) norm; // arr;
+}
+
+
+static PyMethodDef blenderflow_methods[] = {
+  {"normalise",  (PyCFunction) blenderflow_normalise, METH_FASTCALL,
+     "Normalises model based arrays."},
+    {NULL, NULL, 0, NULL}        /* Sentinel */
+};
+
+static PyModuleDef blenderflow = {
     PyModuleDef_HEAD_INIT,
     .m_name = "blenderflow",
     .m_doc = "Blenderflow extension module for handling models as numpy arrays",
     .m_size = -1,
+    .m_methods = blenderflow_methods,
 };
 
 PyMODINIT_FUNC PyInit_blenderflow(void)
@@ -121,7 +161,7 @@ PyMODINIT_FUNC PyInit_blenderflow(void)
     return NULL;
   }
 
-  m = PyModule_Create(&blenderflowmodule);
+  m = PyModule_Create(&blenderflow);
   if (m == NULL)
   {
     return NULL;
