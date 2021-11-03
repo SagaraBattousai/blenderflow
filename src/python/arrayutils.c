@@ -129,7 +129,7 @@ PyArrayObject *normalise(PyArrayObject *arr)
   npy_intp count = PyArray_SIZE(arr); // Safe to use unsafe form as arr is arr
 
   float *data = (float *) PyArray_DATA(arr);
-  PyArrayObject *norm = PyArray_NewLikeArray(arr, NPY_CORDER, NULL, 1);
+  PyArrayObject *norm = (PyArrayObject *) PyArray_NewLikeArray(arr, NPY_CORDER, NULL, 1);
   if (norm == NULL)
   {
     return NULL;
