@@ -92,10 +92,58 @@ Model_as_RGB(ModelObject *self, PyObject *Py_UNUSED(ignored))
   return (PyObject *)rgb;
 }
 
+
+static PyObject *Model_rotate(PyObject *self, PyObject *const *args, Py_ssize_t nargs)
+{
+  double degrees = PyLong_AsDouble(args[0]);
+  PyObject *error = PyErr_Occurred();
+  if (error != NULL)
+  {
+    PyErr_SetString(error, "Error Converting arg 0 to double");
+    return NULL;
+  }
+
+  axis_t axis = PyLong_AsLong(args[1]);
+  error = PyErr_Occurred();
+  if (error != NULL)
+  {
+    PyErr_SetString(error, "Error Converting arg 1 to integer");
+    return NULL;
+  }
+
+  /*******************************************************************/
+  ModelObject *model = (ModelObject *)self;
+  npy_intp *original_dims = PyArray_DIMS(model->polys);
+
+  //i.e. ((triangle count * 3),  3)
+  npy_intp new_dims[2] = { original_dims[0] * original_dims[1], original_dims[2] };
+  PyArray_Dims new_shape = { .ptr = new_dims, .len = 2 };
+  
+  PyArrayObject *transform_array = PyArray_Newshape(model->polys, &new_shape, NPY_CORDER);
+  transform_array = PyArray_Transpose(transform_array, NULL);
+
+  PyArrayObject *rotated_model = rotate(transform_array, degrees, axis);
+  if (rotated_model == NULL)
+  {
+    PyErr_SetString(PyExc_AttributeError, "rotated_model"); //???? TODO: find better exception
+    return NULL;
+  }
+
+  rotated_model = PyArray_Transpose(rotated_model, NULL);
+  PyArray_Dims original_shape = { .ptr = original_dims, .len = 3 };
+
+  rotated_model = PyArray_Newshape(rotated_model, &original_shape, NPY_CORDER);
+
+  Py_INCREF(rotated_model);
+  return rotated_model;
+}
+
+
 static PyMethodDef Model_methods[] = {
     {"as_rgb", (PyCFunction) Model_as_RGB, METH_NOARGS,
-     "Returns the model encoded as an rgb float image."
-    },
+     "Returns the model encoded as an rgb float image."},
+    {"rotate", (PyCFunction) Model_rotate, METH_FASTCALL,
+"rotates model based arrays."},
     {NULL}  /* Sentinel */
 };
 
@@ -110,7 +158,7 @@ static PyTypeObject ModelType = {
     .tp_dealloc = (destructor) Model_dealloc,
     .tp_init = (initproc) Model_init,
     .tp_members = Model_members,
-  .tp_methods = Model_methods,
+    .tp_methods = Model_methods,
 };
 
 static PyObject *
@@ -138,9 +186,8 @@ blenderflow_normalise(PyObject *self, PyObject *const *args, Py_ssize_t nargs)
   return (PyObject *) norm; // arr;
 }
 
-
 static PyMethodDef blenderflow_methods[] = {
-  {"normalise",  (PyCFunction) blenderflow_normalise, METH_FASTCALL,
+  {"normalise",  (PyCFunction)blenderflow_normalise, METH_FASTCALL,
      "Normalises model based arrays."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };

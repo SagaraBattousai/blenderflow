@@ -23,8 +23,12 @@
 #define DATA_PER_POINT 3
 #define RGB_CHANNELS 3
 #define RGB_DIM_COUNT 3
+#define PI 3.1415926535897932384626433832795028841971693993751058209749445923
+#define ROT_MATRIX_SIZE 9
+#define ROT_MATRIX_DIMS 3
 
 static const endianness_t STL_ENDIANNESS = LITTLE;
+
 
 PyArrayObject *array_from_stl(const char *filename)
 {
@@ -145,6 +149,75 @@ PyArrayObject *normalise(PyArrayObject *arr)
   Py_DECREF(min);
 
   return norm;
+}
+
+PyArrayObject *rotate(PyArrayObject *arr, double degrees, axis_t axis)
+{
+
+  double *rot_matrix = rotation_matrix(degrees, axis);
+
+  npy_intp const dims[2] = { ROT_MATRIX_DIMS, ROT_MATRIX_DIMS };
+
+  //Dont think I need inc ref etc
+  PyObject *rot_array = 
+    PyArray_SimpleNewFromData(2, dims, NPY_DOUBLE, rot_matrix);
+
+  return  PyArray_MatrixProduct(rot_array, arr);
+    
+}
+
+//Should be in normal c dll Model but cba to add dll for python build atm
+double *rotation_matrix(double degrees, axis_t axis)
+{
+
+  double rot_matrix[ROT_MATRIX_SIZE];
+  double C = cos(degrees * PI / 180);
+  double S = sin(degrees * PI / 180);
+
+  switch (axis)
+  {
+    case X:
+      rot_matrix[0] = 1;
+      rot_matrix[1] = 0;
+      rot_matrix[2] = 0;
+
+      rot_matrix[3] = 0;
+      rot_matrix[4] = C;
+      rot_matrix[5] = -S;
+
+      rot_matrix[6] = 0;
+      rot_matrix[7] = S;
+      rot_matrix[8] = C;
+      break;
+    case Y:
+      rot_matrix[0] = C;
+      rot_matrix[1] = 0;
+      rot_matrix[2] = S;
+
+      rot_matrix[3] = 0;
+      rot_matrix[4] = 1;
+      rot_matrix[5] = 0;
+
+      rot_matrix[6] = -S;
+      rot_matrix[7] = 0;
+      rot_matrix[8] = C;
+      break;
+    case Z: 
+      rot_matrix[0] = C;
+      rot_matrix[1] = -S;
+      rot_matrix[2] = 0;
+
+      rot_matrix[3] = S;
+      rot_matrix[4] = C;
+      rot_matrix[5] = 0;
+
+      rot_matrix[6] = 0;
+      rot_matrix[7] = 0;
+      rot_matrix[8] = 1;
+      break;
+  }
+
+  return rot_matrix;  
 }
 
 
